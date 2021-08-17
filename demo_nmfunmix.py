@@ -2,9 +2,10 @@ import os
 import sys
 import time
 import numpy as np
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from scipy.io import savemat, loadmat
 import h5py
+from utils import find_dataset
 
 # if (sys.version_info.major+sys.version_info.minor/10)>=3.8
 try:
@@ -30,7 +31,7 @@ if __name__ == '__main__':
     list_Exp_ID = ['c28_163_244']
     Table_time = np.zeros((len(list_Exp_ID), len(list_alpha)+1))
     # video_type = sys.argv[2]
-    video_type = 'SNR' # 'Raw' # 
+    # video_type = 'SNR' # 'Raw' # 
     # eid_select = int(sys.argv[1])
 
     Qclip = 0  # 0.08 # 
@@ -61,10 +62,10 @@ if __name__ == '__main__':
     #     varname = 'network_input' # 
     #     dir_video_SNR = os.path.join(dir_video, 'SNR video')
     # else:
-    varname = 'mov' # 
+    # varname = 'mov' # 
     dir_video_SNR = dir_video
     dir_masks = dir_video # os.path.join(dir_video, 'GT Masks merge')
-    dir_traces = os.path.join(dir_video, 'unmixed_traces_')
+    dir_traces = os.path.join(dir_video, 'unmixed_traces')
     if not os.path.exists(dir_traces):
         os.makedirs(dir_traces) 
     dir_trace_raw = os.path.join(dir_traces, "raw")
@@ -78,6 +79,7 @@ if __name__ == '__main__':
         start = time.time()
         filename_video = os.path.join(dir_video_SNR, Exp_ID + '.h5')
         file_video = h5py.File(filename_video, 'r')
+        varname = find_dataset(file_video)
         (T, Lx, Ly) = video_shape = file_video[varname].shape
         video_dtype = file_video[varname].dtype
         nbytes_video = int(video_dtype.itemsize * file_video[varname].size)
