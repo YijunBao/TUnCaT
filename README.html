@@ -34,41 +34,128 @@
         
         
     </head>
-    <body class="vscode-light">
-        <h1 id="tuncat">TUnCaT</h1>
-<p>Temporal Unmixing of Calcium Traces</p>
-<p><strong>Important note</strong>: The current version requires python 3.8 or newer. A version compatible with python 3.7 or older will come soon.</p>
+    <body class="vscode-body vscode-light">
+        <p><img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\neurotoolbox-logo.svg" alt="NeuroToolbox logo"></p>
+<h1 id="tuncat">TUnCaT</h1>
+<p>Temporal Unmixing of Calcium Traces (TUnCaT) is an automatic algorithm to decontaminate false transients from temporal traces generated from fluorescent calcium imaging videos. TUnCaT removed false transients caused by large-scale background fluctuation using background subtraction; TUnCaT removed false transients caused by neighboring neurons, axons, and dendrites using nonnegative matrix factorization (NMF).</p>
+<p>Copyright (C) 2021 Duke University NeuroToolbox</p>
+<p>This repo is an archived version of TUnCaT (v0.1). It also contains the results for our paper and the code to generate those results. This repo will not be updated. Please visit the <a href="https://github.com/YijunBao/TUnCaT">newer version</a> if you are not interested in reproducing our paper results.</p>
 <ul>
-<li>Required packages: numpy, scipy, h5py, scikit-learn, numba</li>
+<li><a href="#tuncat">TUnCaT</a></li>
+<li><a href="#installation-on-windows-or-linux">Installation on Windows or Linux</a>
+<ul>
+<li><a href="#from-official-python-website">From official Python website</a></li>
+<li><a href="#from-anaconda">From Anaconda</a></li>
+</ul>
+</li>
+<li><a href="#demo">Demo</a></li>
+<li><a href="#input-output-and-intermediate-files">Input, Output, and Intermediate Files</a>
+<ul>
+<li><a href="#input-files">Input files</a></li>
+<li><a href="#intermediate-and-output-files">Intermediate and Output files</a></li>
+</ul>
+</li>
+<li><a href="#use-your-own-data">Use your own data</a>
+<ul>
+<li><a href="#use-your-own-videos">Use your own videos</a></li>
+<li><a href="#use-your-own-neuron-masks">Use your own neuron masks</a></li>
+<li><a href="#set-the-unmixing-parameters">Set the unmixing parameters</a></li>
+</ul>
+</li>
+<li><a href="#citation">Citation</a></li>
+<li><a href="#licensing-and-copyright">Licensing and Copyright</a></li>
+<li><a href="#sponsors">Sponsors</a></li>
+</ul>
+<h1 id="installation-on-windows-or-linux">Installation on Windows or Linux</h1>
+<h2 id="from-official-python-website">From official Python website</h2>
+<ul>
+<li>In Windows, install Python from the <a href="https://www.python.org/downloads/">official website</a>.</li>
+<li>In Linux, Python is often already installed. You can also install the lastest version by typing the following commands</li>
+</ul>
+<pre><code class="language-sh"><div>sudo apt-get install python3
+sudo <span class="hljs-built_in">alias</span> python = python3
+</div></code></pre>
+<ul>
+<li>Launch Windows or Linux terminal, and install the required packages: numpy, scipy, h5py, scikit-learn, numba by typing the following commands.Because numpy and scipy are dependencies of scikit-learn, only the remaining three packages needs manual installation.</li>
+</ul>
+<pre><code class="language-bat"><div>python -m pip install h5py
+python -m pip install scikit-learn
+python -m pip install numba
+</div></code></pre>
+<p>To run the optional figure plotting section in the demo, matplotlib should be installed</p>
+<pre><code class="language-bat"><div>python -m pip install matplotlib
+</div></code></pre>
+<h2 id="from-anaconda">From Anaconda</h2>
+<ul>
+<li>Install Python <a href="https://www.anaconda.com/">Anaconda</a></li>
+<li>Launch Anaconda prompt, and install the required packages: numpy, scipy, h5py, scikit-learn, numba. Because numpy and scipy are preinstalled in Anaconda, only the remaining three packages needs manual installation.</li>
+</ul>
+<pre><code class="language-bat"><div>conda install h5py
+conda install scikit-learn
+conda install numba
+</div></code></pre>
+<ul>
+<li>Please be aware that the speed of TUnCaT in the Anaconda installation may be significantly slower than the speed in the offical python installation in Windows.</li>
 </ul>
 <h1 id="demo">Demo</h1>
+<p>We provided a demo for all users to get familiar with TUnCaT. We provided a one-photon imaging video <code>c28_163_244.h5</code> as well as its manually labeled neurons <code>FinalMasks_c28_163_244.mat</code>. The demo will calculate the raw traces and background traces of all neurons, calculate the unmixed traces using TUnCaT, and export them to the folder <code>unmixed_traces</code>. The input, output, and intermediate files will be explained in <a href="#input-output-and-intermediate-files">Input, Output, and Intermediate Files</a>.</p>
+<p>To run the demo python script, launch system terminal or Anaconda prompt, and type the following script</p>
+<pre><code class="language-bat"><div><span class="hljs-built_in">cd</span> {TUnCaT_root_path}
+python demo_TUnCaT.py
+</div></code></pre>
+<p>You can also run the demo <code>demo_TUnCaT.ipynb</code> interactively using Jupyter Notebook. This notebook contains the expected figure of the background-subtracted trace and the unmixed trace of the first neuron. The saved processing time is recorded in a laptop with an AMD Ryzen 5 3500U quad-core CPU.</p>
+<h1 id="input-output-and-intermediate-files">Input, Output, and Intermediate Files</h1>
+<p>By default, all the input, output, and intermediate files are saved under the <code>TUnCaT</code> folder.</p>
+<h2 id="input-files">Input files</h2>
 <ul>
-<li>
-<p>Script: <code>demo_nmfunmix.py</code></p>
-</li>
-<li>
-<p>Parameter:</p>
+<li>A .h5 file <code>{name}.h5</code> contains the input video. This is a 3D dataset with shape = (T, Lx, Ly), where T is the number of frames, and (Lx, Ly) is the lateral dimension of each frame. The demo videos have (T, Lx, Ly) = (6000, 50, 50).</li>
+<li>A .mat file <code>FinalMasks_{name}.mat</code> contains the nueron masks of the video. This is a 3D array with shape = (Ly, Lx, n) in MATLAB, where Ly and Lx should match the lateral dimensions of the video, and n is the number of neurons. The demo masks have (Ly, Lx, n) = (50, 50, 45).</li>
+<li>Important notice: The default dimension order for multi-dimensional array is reversed in MATLAB and python. When you save a dataset with shape = (L1, L2, L3) in MATLAB to an .h5 file or a .mat file with version 7.3 or newer (requiring h5py.File to load in python workspace), and then load it in python, the shape will become (L3, L2, L1). However, if you save the dataset as a .mat file with version 7 or earlier (requiring scipy.loadmat to load in python workspace), the dimensions will preserve and still be (L1, L2, L3). In this document, we will use the python default order to describe the datasets in python workspace or saved in .h5, and use the MATLAB default order to describe the datasets saved in .mat. Sometimes you need to transpose the dimensions to make them consistent. In python, you can transpose the dimensions using <code>Masks = Masks.transpose((2,1,0))</code>. In MATLAB, you can transpose the dimensions using <code>Masks = permute(Masks,[3,2,1])</code>.</li>
+</ul>
+<h2 id="intermediate-and-output-files">Intermediate and Output files</h2>
+<p>After running TUnCaT on the demo video, the intermediate and output files will be under a new folder <code>unmixed_traces</code>.</p>
 <ul>
-<li>Regularization parameter: <code>alpha</code> (<code>list_alpha</code> is a list of <code>alpha</code> to be tried)</li>
-<li>Video location: <code>dir_video</code></li>
-<li>List of video names: <code>list_Exp_ID</code> (should be .h5 files)</li>
+<li>Intermediate file: <code>unmixed_traces/raw/{name}.mat</code> stores the raw neuron traces (<code>traces</code>) and the background traces (<code>bgtraces</code>). Each trace variable is 2D matrix with shape = (T, n), where T is the number of frames, and n is the number of neurons.</li>
+<li>Output file: <code>unmixed_traces/alpha={}/{name}.mat</code> or <code>unmixed_traces/list_alpha={}/{name}.mat</code> stores the unmixed traces of the neurons (<code>traces_nmfdemix</code>), as well as other quantities characterizing the NMF unmixing process of each neuron, including the mixing matrix (<code>list_mixout</code>), final alpha (<code>list_alpha_final</code>), reconstruction residual (<code>list_MSE</code>), and number of iterations (<code>list_n_iter</code>). See the function descriptions for the detailed meanings of these quantities.</li>
 </ul>
-</li>
-<li>
-<p>Inputs:</p>
+<h1 id="use-your-own-data">Use your own data</h1>
+<p>Of course, you can modify the demo scripts to process other videos. You need to set the folders of the videos and neuron masks, and change some parameters in the python scripts to correspond to your videos.</p>
+<h2 id="use-your-own-videos">Use your own videos</h2>
 <ul>
-<li>Video: <code>c28_163_244.h5</code></li>
-<li>GT neuron masks: <code>FinalMasks_c28_163_244.mat</code></li>
+<li>Set the folder and file names of your video correctly. You need to change the variables <code>dir_video</code> and <code>list_Exp_ID</code>. The variable <code>dir_video</code> is the folder containing the input videos. For example, if your videos are stored in <code>C:/Users/{username}/Documents/GitHub/TUnCaT_paper_reproduction/TUnCaT/data</code>, set <code>dir_video = 'C:/Users/{username}/Documents/GitHub/TUnCaT_paper_reproduction/TUnCaT/data'</code>. You can also use relative path, such as <code>dir_video = './data'</code>. The variable <code>list_Exp_ID</code> is the list of the file names (without extension) of the input videos (e.g., <code>list_Exp_ID = ['c28_163_244']</code> in the demo referes to the input file <code>{TUnCaT_root_path}/data/c28_163_244.h5</code>).</li>
+<li>Currently, we only support .h5 files as the input video, so you need to convert the format of your data to .h5. You can save the video in a dataset with any name, but don't save the video under any group. The video should have a shape of (T, Lx, Ly), where T is the number of frames, and (Lx, Ly) is the lateral dimension of each frame. The support to more video formats will come soon. When doing format conversion, make sure the dimension is in the correct order. For example, if you save save the .h5 files from MATLAB, the shape of the dataset should be (Ly, Lx, T) in MATLAB. See <a href="#input-files">Input files</a> for more explanation of the dimension order.</li>
 </ul>
-</li>
-<li>
-<p>Output folder: <code>unmixed_traces</code></p>
+<h2 id="use-your-own-neuron-masks">Use your own neuron masks</h2>
 <ul>
-<li>Raw traces: <code>unmixed_traces/raw/c28_163_244.mat</code></li>
-<li>Unmixed traces: <code>unmixed_traces/alpha= 1.000/c28_163_244.mat</code></li>
+<li>Set the folder and file names of your mask files correctly. You need to change variable <code>dir_mask</code> to the folder containing the mask files.</li>
+<li>Currently, we only support .mat files as the neuron masks, so you need to convert the format of your neuron masks to .mat, and save the neuron masks in dataset 'FinalMasks'. The name of the masks file should be <code>FinalMasks_{Exp_ID}.mat</code>, where the <code>{Exp_ID}</code> is the name of the corresponding video. The neuron masks should be saved as a 3D array named <code>FinalMasks</code>, and the dimension should be (Ly, Lx, n) in MATLAB, where Ly and Lx are the same as the lateral dimension of the video, and n is the number of neurons.</li>
+<li>The masks created by some manual labeling software may contain an empty (all zero) image as the first frame. You need to remove the empty frame before saving them.</li>
 </ul>
-</li>
+<h2 id="set-the-unmixing-parameters">Set the unmixing parameters</h2>
+<ul>
+<li>The list of video names (e.g., <code>list_Exp_ID = ['c28_163_244']</code>)</li>
+<li>The folder of the video (e.g., <code>dir_video='./data'</code>);</li>
+<li>The folder of the neuron masks (e.g., <code>dir_masks='./data'</code>);</li>
+<li>The folder of the output traces (e.g., <code>dir_traces='./data/unmixed_traces'</code>);</li>
+<li><code>list_alpha</code> is the list of tested alpha;</li>
+<li><code>multi_alpha</code> determines the option to deal with multiple elements in <code>list_alpha</code>. False means the largest element providing non-trivial output traces will be used, which can be differnt for different neurons. True means each element will be tested and saved independently. These options are equivalent when there is only one element in <code>list_alpha</code>;</li>
+<li><code>use_direction</code> indicates whether a direction requirement is applied to the output traces;</li>
+<li><code>Qclip</code> is clipping quantile. Traces lower than this quantile are clipped to this quantile value;</li>
+<li><code>th_pertmin</code> is maximum pertentage of unmixed traces equaling to the trace minimum;</li>
+<li><code>epsilon</code> is the minimum value of the input traces after scaling and shifting;</li>
+<li><code>nbin</code> is the temporal downsampling ratio;</li>
+<li><code>bin_option</code> determines the temporal downsampling option. It can be 'downsample', 'sum', or 'mean'. It is not used when nbin == 1;</li>
+<li><code>flexible_alpha</code> determines whether a flexible alpha strategy is used when the smallest alpha in &quot;list_alpha&quot; already caused over-regularization.</li>
+<li>Among these parameters, we think most parameters do not need to be changed, but an optimized <code>list_alpha</code> can improve the unmixing accuracy. In our paper, we optimized the alpha using cross-validation, but it requires manual labeling of many traces, which is very time consuming. Instead, you can start with <code>list_alpha = [1]</code>, because most of our optimized alpha are close to 1.</li>
 </ul>
+<h1 id="citation">Citation</h1>
+<p>If you use any part of this software in your work, please cite Bao et al. 2021.</p>
+<h1 id="licensing-and-copyright">Licensing and Copyright</h1>
+<p>TUnCaT is released under <a href="LICENSE">the GNU License, Version 2.0</a>.</p>
+<h1 id="sponsors">Sponsors</h1>
+<p><img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\NSFBRAIN.png" height="100"/><img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\BRF.png" height="100"/><img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\Beckmanlogo.png" height="100"/>
+<br>
+<img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\valleelogo.png" height="100"/><img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\dibslogo.png" height="100"/><img src="file:///c:\Users\baoyi\Documents\GitHub\TUnCaT\readme\sloan_logo_new.jpg" height="100"/></p>
 
     </body>
     </html>

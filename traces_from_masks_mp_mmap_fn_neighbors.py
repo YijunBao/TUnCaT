@@ -1,19 +1,19 @@
+import os
 import numpy as np
 import multiprocessing as mp
-from multiprocessing.shared_memory import SharedMemory
 
 
-def mean_median_out_trace(nn, shm_video, video_dtype, video_shape, \
-    shm_masks, shm_xx, shm_yy, r_bg, comx, comy, area, neighbors):
+def mean_median_out_trace(nn, fn_video, video_dtype, video_shape, \
+    fn_masks, fn_xx, fn_yy, r_bg, comx, comy, area, neighbors):
     ''' Calculate the traces of the neuron, background, and outside region for a neuron. 
     Inputs: 
         nn (int): The index of the neuron of interest.
-        shm_video (SharedMemory object): Shared memory storing the input video.
+        fn_video (str): Memory mapping file name of the input video.
         video_dtype (str): The data type of the input video.
         video_shape (tuple of int, shape = (3,)): The shape of the input video.
-        shm_masks (SharedMemory object): Shared memory storing the binary spatial masks of all neurons.
-        shm_xx (SharedMemory object): Shared memory storing the x position of a grid.
-        shm_yy (SharedMemory object): Shared memory storing the y position of a grid.
+        fn_masks (str): Memory mapping file name of the binary spatial masks of all neurons.
+        fn_xx (str): Memory mapping file name of the x position of a grid.
+        fn_yy (str): Memory mapping file name of the y position of a grid.
         r_bg (float): The radius of the background mask.
         comx (numpy.ndarray of float, shape = (n,)): The x-position of the center of all masks.
         comy (numpy.ndarray of float, shape = (n,)): The y-position of the center of all masks.
@@ -28,46 +28,47 @@ def mean_median_out_trace(nn, shm_video, video_dtype, video_shape, \
 
     (T, Lx, Ly) = video_shape
     n = comx.size
-    # Reconstruct the video, masks, and corrdinates from shared memory objects.
-    video = np.ndarray((T, Lx*Ly), buffer=shm_video.buf, dtype = video_dtype)
-    FinalMasks = np.ndarray((n, Lx, Ly), buffer=shm_masks.buf, dtype = 'bool')
-    mask = FinalMasks[nn]
-    xx = np.ndarray((Lx,Ly), buffer=shm_xx.buf, dtype='uint16')
-    yy = np.ndarray((Lx,Ly), buffer=shm_yy.buf, dtype='uint16')
+    # Reconstruct the video, masks, and corrdinates from memory mapping files.
+    fp_video = np.memmap(fn_video, dtype=video_dtype, mode='r', shape=(T,Lx*Ly))
+    fp_masks = np.memmap(fn_masks, dtype='bool', mode='r', shape=(n,Lx,Ly))
+    mask = fp_masks[nn]
+    fp_xx = np.memmap(fn_xx, dtype='uint16', mode='r', shape=(Lx,Ly))
+    fp_yy = np.memmap(fn_yy, dtype='uint16', mode='r', shape=(Lx,Ly))
 
     # Expand the radius of the background mask if the neuron area is large.
     r_bg_0 = max(r_bg, np.sqrt(area/np.pi) * 2.5)
-    circleout = (yy-comx[nn]) ** 2 + (xx-comy[nn]) ** 2 < r_bg_0 ** 2 # Background mask
-    bgtrace = np.median(video[:, circleout.ravel()], 1) # Background trace
-    trace = video[:, mask.ravel()].mean(1) # Neuron trace
+    circleout = (fp_yy-comx[nn]) ** 2 + (fp_xx-comy[nn]) ** 2 < r_bg_0 ** 2 # Background mask
+    bgtrace = np.median(fp_video[:, circleout.ravel()], 1) # Background trace
+    trace = fp_video[:, mask.ravel()].mean(1) # Neuron trace
 
-    fgmask = FinalMasks[neighbors].sum(0) > 0
+    fgmask = fp_masks[neighbors].sum(0) > 0
     r_bg_large = r_bg * 0.8
-    circleout = (yy-comx[nn]) ** 2 + (xx-comy[nn]) ** 2 < r_bg_large ** 2
+    circleout = (fp_yy-comx[nn]) ** 2 + (fp_xx-comy[nn]) ** 2 < r_bg_large ** 2
     bgmask = np.logical_and(circleout,np.logical_not(fgmask)) # Outside mask
     bgweight = bgmask.sum() # Area of outside mask
     # Adjust the radius of the outside mask, so that the area of the outside mask is larger than half of the neuron area
     while bgweight < area/2: # == 0: # 
         r_bg_large = r_bg_large+1
-        circleout = (yy-comx[nn]) ** 2 + (xx-comy[nn]) ** 2 < r_bg_large ** 2
+        circleout = (fp_yy-comx[nn]) ** 2 + (fp_xx-comy[nn]) ** 2 < r_bg_large ** 2
         bgmask = np.logical_and(circleout,np.logical_not(fgmask))
         bgweight = bgmask.sum()
-    outtrace = video[:, bgmask.ravel()].mean(1) # Outside trace
+    outtrace = fp_video[:, bgmask.ravel()].mean(1) # Outside trace
 
     return trace, bgtrace, outtrace
 
 
-def traces_bgtraces_from_masks_shm_neighbors(shm_video, video_dtype, video_shape, \
-        shm_masks, masks_shape, FinalMasks):
+def traces_bgtraces_from_masks_mmap_neighbors(fn_video, video_dtype, video_shape, \
+        fn_masks, masks_shape, fp_masks, name_mmap):
     ''' Calculate the traces of the neuron, background, and outside region for all neurons. 
     Inputs: 
-        shm_video (SharedMemory object): Shared memory storing the input video.
+        fn_video (str): Memory mapping file name of the input video.
         video_dtype (str): The data type of the input video.
         video_shape (tuple of int, shape = (3,)): The shape of the input video.
-        shm_masks (SharedMemory object): Shared memory storing the binary spatial masks of all neurons.
+        fn_masks (str): Memory mapping file name of the binary spatial masks of all neurons.
         masks_shape (tuple of int, shape = (3,)): The shape of the neuron masks.
-        FinalMasks (numpy.ndarray of bool, shape = (n,Lx,Ly)): The binary spatial masks of all neurons.
+        fp_masks (numpy.ndarray of bool, shape = (n,Lx,Ly)): The binary spatial masks of all neurons.
             Each slice represents a binary mask of a neuron.
+        name_mmap (str): Identification section of the memory mapping file name.
 
     Outputs:
         traces (numpy.ndarray of float, shape = (T,n)): The raw traces of all neurons.
@@ -82,19 +83,19 @@ def traces_bgtraces_from_masks_shm_neighbors(shm_video, video_dtype, video_shape
 
     (ncells, Lx, Ly) = masks_shape
     # Find the neighboring neurons of all neurons. 
-    (list_neighbors, comx, comy, area, r_bg) = find_neighbors(FinalMasks)
+    (list_neighbors, comx, comy, area, r_bg) = find_neighbors(fp_masks)
 
-    # Create shared memory objects for x and y coordinates
+    # Create memory mapping files for x and y coordinates
     [xx, yy] = np.meshgrid(np.arange(Ly), np.arange(Lx))
     xx = xx.astype('uint16')
-    shm_xx = SharedMemory(create=True, size=xx.nbytes)
-    xx_temp = np.frombuffer(shm_xx.buf, dtype='uint16')
-    xx_temp[:] = xx.ravel()
+    fn_xx = name_mmap + 'xx.dat'
+    fp_xx = np.memmap(fn_xx, dtype='uint16', mode='w+', shape=(Lx,Ly))
+    fp_xx[:] = xx[:]
     yy = yy.astype('uint16')
-    shm_yy = SharedMemory(create=True, size=yy.nbytes)
-    yy_temp = np.frombuffer(shm_yy.buf, dtype='uint16')
-    yy_temp[:] = yy.ravel()
-    
+    fn_yy = name_mmap + 'yy.dat'
+    fp_yy = np.memmap(fn_yy, dtype='uint16', mode='w+', shape=(Lx,Ly))
+    fp_yy[:] = yy[:]
+
     # results = []
     # for nn in range(ncells):
     #     results.append(mean_median_out_trace(nn, shm_video, video_dtype, video_shape, \
@@ -102,19 +103,21 @@ def traces_bgtraces_from_masks_shm_neighbors(shm_video, video_dtype, video_shape
 
     # Calculate the traces of the neuron, background, and outside region for each neuron. 
     p = mp.Pool(mp.cpu_count())
-    results = p.starmap(mean_median_out_trace, [(nn, shm_video, video_dtype, video_shape, \
-        shm_masks, shm_xx, shm_yy, r_bg, comx, comy, area[nn], list_neighbors[nn]) for nn in range(ncells)], chunksize=1)
+    results = p.starmap(mean_median_out_trace, [(nn, fn_video, video_dtype, video_shape, \
+        fn_masks, fn_xx, fn_yy, r_bg, comx, comy, area[nn], list_neighbors[nn]) for nn in range(ncells)], chunksize=1)
     p.close()
 
     traces = np.vstack([x[0] for x in results]).T
     bgtraces = np.vstack([x[1] for x in results]).T
     outtraces = np.array([x[2] for x in results]).T
 
-    # Unlink shared memory objects
-    shm_xx.close()
-    shm_xx.unlink()
-    shm_yy.close()
-    shm_yy.unlink()
+    # Delete memory mapping files
+    fp_xx._mmap.close()
+    del fp_xx
+    os.remove(fn_xx)
+    fp_yy._mmap.close()
+    del fp_yy
+    os.remove(fn_yy)
 
     return traces, bgtraces, outtraces, list_neighbors
 
