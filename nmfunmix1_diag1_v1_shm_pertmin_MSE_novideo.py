@@ -3,7 +3,7 @@ from nmfunmix_MSE import nmfunmix
 
 
 def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
-        use_direction=False, nbin=1, bin_option='downsample', flexible_alpha=True):
+        th_residual=0, nbin=1, bin_option='downsample', flexible_alpha=True):
     ''' Unmix the input traces in "trace" and "outtrace" using NMF, and obtain the unmixed traces and the mixing matrix. 
     Inputs: 
         i (int): The index of the neuron of interest.
@@ -20,8 +20,7 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
         th_pertmin (float, default to 1): Maximum pertentage of unmixed traces equaling to the trace minimum.
             th_pertmin = 1 means no requirement is applied. 
         epsilon (float, default to 0): The minimum value of the input traces after scaling and shifting. 
-        use_direction (bool, default to False): Whether a direction requirement is applied to the output traces.
-            A direction requirement means the positive transients should be farther away from baseline than negative transients.
+        th_residual (float, default to 0): If not zero, The redisual of unmixing should be smaller than this value.
         nbin (int, default to 1): The temporal downsampling ratio.
             nbin = 1 means temporal downsampling is not used.
         bin_option (str, can be 'downsample' (default), 'sum', or 'mean'): 
@@ -64,6 +63,8 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
         list_alpha.sort()
 
     tracein = np.concatenate([trace, outtrace[:,np.newaxis]], axis=1)
+    noise = th_residual * np.ones(tracein.shape[1])
+
     # call nmfunmix
     # Gradually increase alpha until the output mixout is singular,
     # then choose the maximum alpha that provides nonsingular mixout
@@ -71,17 +72,7 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
         (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, \
             nbin=nbin, alpha=list_alpha[j], epsilon=epsilon, bin_option=bin_option) 
         alpha_final = list_alpha[j]
-        # "pertmin" is the indicator of whether the pertentage of unmixed traces equaling to the trace minimum exceeds "th_pertmin"
-        if th_pertmin < 1:
-            pertmin = (np.abs(traceout[:,0] - traceout[:,0].min())<eps).mean() > th_pertmin
-        else: 
-            pertmin = False
-        # "negative" is the indicator of whether the positive transients are farther away from baseline than negative transients
-        if use_direction:
-            negative = 2 * np.median(traceout[:,0]) > traceout[:,0].max() + traceout[:,0].min()
-        else:
-            negative = False
-        question_flag = pertmin or subtraces.size or negative
+        question_flag = over_regularization(traceout, eps, subtraces, th_pertmin, th_residual, MSE, noise)
         
         # question_flag == True means the alpha is too large. 
         if question_flag:
@@ -92,35 +83,36 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
                     (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, \
                         nbin=nbin, alpha=list_alpha[jj], epsilon=epsilon, bin_option=bin_option) 
                     alpha_final = list_alpha[jj]
-                    if th_pertmin < 1:
-                        pertmin = (np.abs(traceout[:,0] - traceout[:,0].min())<eps).mean() > th_pertmin
-                    else: 
-                        pertmin = False
-                    if use_direction:
-                        negative = 2 * np.median(traceout[:,0]) > traceout[:,0].max() + traceout[:,0].min()
-                    else:
-                        negative = False
-                    question_flag = pertmin or subtraces.size or negative 
+                    question_flag = over_regularization(traceout, eps, subtraces, th_pertmin, th_residual, MSE, noise) 
             if jj == 0 and flexible_alpha:  
-                # if the first alphas already caused over-regularization, and flexible alpha strategy is used,
+                # if the first alpha already caused over-regularization, and flexible alpha strategy is used,
                 # then recursively divide alpha by 2 until no over-regularization exists.
                 alpha_temp = list_alpha[0]
-                while question_flag and alpha_temp>list_alpha[0]/5: # 1e-4: # 
+                while question_flag and alpha_temp>1e-4: # list_alpha[0]/5: # 
                     alpha_temp = alpha_temp/2
                     (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, \
                         nbin=nbin, alpha=alpha_temp, epsilon=epsilon, bin_option=bin_option) 
                     alpha_final = alpha_temp
-                    if th_pertmin < 1:
-                        pertmin = (np.abs(traceout[:,0] - traceout[:,0].min())<eps).mean() > th_pertmin
-                    else: 
-                        pertmin = False
-                    if use_direction:
-                        negative = 2 * np.median(traceout[:,0]) > traceout[:,0].max() + traceout[:,0].min()
-                    else:
-                        negative = False
-                    question_flag = pertmin or subtraces.size or negative 
+                    question_flag = over_regularization(traceout, eps, subtraces, th_pertmin, th_residual, MSE, noise)
             break
 
     print('finished neuron', i)
     return traceout, mixout, outtrace, tempmixIDs, subtraces, alpha_final, MSE, tracein, n_iter
 
+
+def over_regularization(traceout, eps, subtraces, th_pertmin, th_residual, MSE, noise):
+    # "pertmin" is the indicator of whether the pertentage of unmixed traces equaling to the trace minimum exceeds "th_pertmin"
+    if th_pertmin < 1:
+        pertmin = (np.abs(traceout - traceout.min(0))<eps).mean(0).max() > th_pertmin
+    else: 
+        pertmin = False
+    # "noisy" is the indicator of whether the the residual exceeds "th_residual"
+    if th_residual:
+        # noisy = MSE[0] > noise[0]
+        # noisy = MSE.mean() > noise.mean()
+        # noisy = np.all(MSE > noise)
+        noisy = np.any(MSE > noise)
+    else:
+        noisy = False
+    question_flag = pertmin or subtraces.size or noisy 
+    return question_flag

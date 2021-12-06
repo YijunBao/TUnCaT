@@ -27,12 +27,12 @@ if __name__ == '__main__':
     # True means each element will be tested and saved independently.
     # Traces lower than this quantile are clipped to this quantile value.
     Qclip = 0
-    # Maximum pertentage of unmixed traces equaling to the trace minimum.
-    th_pertmin = 1
     # The minimum value of the input traces after scaling and shifting. 
     epsilon = 0
-    # Whether a direction requirement is applied to the output traces.
-    use_direction = False
+    # Maximum pertentage of unmixed traces equaling to the trace minimum.
+    th_pertmin = 1
+    # If th_residual > 0, The redisual of unmixing should be smaller than this value.
+    th_residual = 0
     # The temporal downsampling ratio.
     nbin = 1
     # The method of temporal downsampling. can be 'downsample', 'sum', or 'mean'
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         
         # run TUnCaT to calculate the unmixed traces of the marked neurons in the video
         run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha, Qclip, \
-            th_pertmin, epsilon, use_direction, nbin, bin_option, multi_alpha, flexible_alpha)
+            th_pertmin, epsilon, th_residual, nbin, bin_option, multi_alpha, flexible_alpha)
 
 
     # %% Load the output data (Optional).

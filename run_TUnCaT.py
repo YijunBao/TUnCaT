@@ -16,7 +16,7 @@ from use_nmfunmix_mp_diag_v1_shm_MSE_novideo import use_nmfunmix
 
 
 def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0], Qclip=0, \
-        th_pertmin=1, epsilon=0, use_direction=False, nbin=1, \
+        th_pertmin=1, epsilon=0, th_residual=False, nbin=1, \
         bin_option='downsample', multi_alpha=True, flexible_alpha=True):
     ''' Unmix the traces of all neurons in a video, and obtain the unmixed traces and the mixing matrix. 
         The video is stored in "filename_video", and the neuron masks are stored in "filename_masks".
@@ -35,8 +35,7 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         th_pertmin (float, default to 1): Maximum pertentage of unmixed traces equaling to the trace minimum.
             th_pertmin = 1 means no requirement is applied. 
         epsilon (float, default to 0): The minimum value of the input traces after scaling and shifting. 
-        use_direction (bool, default to False): Whether a direction requirement is applied to the output traces.
-            A direction requirement means the positive transients should be farther away from baseline than negative transients.
+        th_residual (float, default to 0): If not zero, The redisual of unmixing should be smaller than this value.
         nbin (int, default to 1): The temporal downsampling ratio.
             nbin = 1 means temporal downsampling is not used.
         bin_option (str, can be 'downsample' (default), 'sum', or 'mean'): 
@@ -182,7 +181,7 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
             start = time.time()
             traces_nmfdemix, list_mixout, list_MSE, list_final_alpha, list_n_iter = \
                 use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, [alpha], Qclip, \
-                th_pertmin, epsilon, use_direction, nbin, bin_option, flexible_alpha)
+                th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha)
             finish = time.time()
             print('NMF unmixing time: {} s'.format(finish - start))
 
@@ -198,7 +197,7 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         start = time.time()
         traces_nmfdemix, list_mixout, list_MSE, list_final_alpha, list_n_iter = \
             use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha, Qclip, \
-            th_pertmin, epsilon, use_direction, nbin, bin_option, flexible_alpha)
+            th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha)
         finish = time.time()
         print('Unmixing time: {} s'.format(finish - start))
 

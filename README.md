@@ -5,7 +5,7 @@ Temporal Unmixing of Calcium Traces (TUnCaT) is an automatic algorithm to decont
 
 Copyright (C) 2021 Duke University NeuroToolbox
 
-This repo is an archived version of TUnCaT (v0.1). It also contains the results for our paper and the code to generate those results. This repo will not be updated. Please visit the [newer version](https://github.com/YijunBao/TUnCaT) if you are not interested in reproducing our paper results. 
+This repo contains the code of TUnCaT. If you want to reproduce the results in our paper, please visit the [paper reproduction repo](https://github.com/YijunBao/TUnCaT_paper_reproduction) to find the data, results, and code to analyze the results. 
 
 - [TUnCaT](#tuncat)
 - [Installation on Windows or Linux](#installation-on-windows-or-linux)
@@ -19,6 +19,7 @@ This repo is an archived version of TUnCaT (v0.1). It also contains the results 
   - [Use your own videos](#use-your-own-videos)
   - [Use your own neuron masks](#use-your-own-neuron-masks)
   - [Set the unmixing parameters](#set-the-unmixing-parameters)
+    - [Set alpha as a user-defined value or using cross-validation](#set-alpha-as-a-user-defined-value-or-using-cross-validation)
 - [Citation](#citation)
 - [Licensing and Copyright](#licensing-and-copyright)
 - [Sponsors](#sponsors)
@@ -105,7 +106,13 @@ Of course, you can modify the demo scripts to process other videos. You need to 
 * `nbin` is the temporal downsampling ratio;
 * `bin_option` determines the temporal downsampling option. It can be 'downsample', 'sum', or 'mean'. It is not used when nbin == 1;
 * `flexible_alpha` determines whether a flexible alpha strategy is used when the smallest alpha in "list_alpha" already caused over-regularization.
-* Among these parameters, we think most parameters do not need to be changed, but an optimized `list_alpha` can improve the unmixing accuracy. In our paper, we optimized the alpha using cross-validation, but it requires manual labeling of many traces, which is very time consuming. Instead, you can start with `list_alpha = [1]`, because most of our optimized alpha are close to 1. 
+
+### Set alpha as a user-defined value or using cross-validation
+Among the above parameters, we think most parameters do not need to be changed, but an optimized `list_alpha` can improve the unmixing accuracy. In our paper, we optimized the alpha using cross-validation, but it requires manual labeling of many traces, which is time consuming. Users can start with `list_alpha = [1]`, because we showed that most of our optimized alpha are close to 1, and using a user-defined initial alpha=1 can give nearly the same accuracy for most videos without extreme conditions. 
+
+However, if the experimental conditions are very different from our test datasets, using cross-validation to optimize alpha will potentially be more reliable. Because cross-validation requires multiple videos, we don't provide demo for cross-validation, but users can run through our paper reproduction code in the [paper reproduction repo](https://github.com/YijunBao/TUnCaT_paper_reproduction) to see how cross-validation can be done. Here, we will briefly introduce how to perform cross-validation, and use our ABO dataset as an example. The following folders will refer to the folder in the paper reproduction repo. 
+
+(1) Find a dataset containing multiple videos with similar experimental conditions. The three major datasets in our paper, ABO, NAOMi, 1p, are all qualified. (2) Manually label ground truth transients using the MATLAB GUI in the folder `TemporalLabelingGUI` (We already provided the ground truth transients for the paper reproduction datasets). (3) Run TUnCaT with multiple alpha in `list_alpha` using `TUnCaT_multi_ABO.py`. For a new dataset, you can also start with `demo_TUnCaT.py`, and set `list_alpha` to [0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10]. Make sure `multi_alpha = True`. (4) Calculate the F1 scores of all videos with different alpha using `evaluation/eval_ABO_ours.m`. (5) Find the optimal alpha for each cross-validation round using `evaluation/cross_validation.m`. You can load the file storing the calculated F1 scores, or run `cross_validation.m` immediately after `eval_ABO_ours.m` to avoid reloading the F1 scores.
 
 
 # Citation 

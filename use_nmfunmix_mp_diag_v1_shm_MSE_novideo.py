@@ -5,7 +5,7 @@ from nmfunmix1_diag1_v1_shm_pertmin_MSE_novideo import nmfunmix1
 
 
 def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qclip=0, \
-        th_pertmin=1, epsilon=0, use_direction=False, nbin=1, bin_option='downsample', flexible_alpha=True):
+        th_pertmin=1, epsilon=0, th_residual=0, nbin=1, bin_option='downsample', flexible_alpha=True):
     ''' Unmix the traces of all neurons using NMF, and obtain the unmixed traces and the mixing matrix. 
     Inputs: 
         traces (numpy.ndarray of float, shape = (T,n)): The raw traces of all neurons.
@@ -23,8 +23,7 @@ def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qc
         th_pertmin (float, default to 1): Maximum pertentage of unmixed traces equaling to the trace minimum.
             th_pertmin = 1 means no requirement is applied. 
         epsilon (float, default to 0): The minimum value of the input traces after scaling and shifting. 
-        use_direction (bool, default to False): Whether a direction requirement is applied to the output traces.
-            A direction requirement means the positive transients should be farther away from baseline than negative transients.
+        th_residual (float, default to 0): If not zero, The redisual of unmixing should be smaller than this value.
         nbin (int, default to 1): The temporal downsampling ratio.
             nbin = 1 means temporal downsampling is not used.
         bin_option (str, can be 'downsample' (default), 'sum', or 'mean'): 
@@ -62,13 +61,13 @@ def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qc
     # results = []
     # for i in range(n):
     #     result = nmfunmix1(i, traces_clip[:, list_neighbors[i]], bgtraces[:,i], list_alpha, \
-    #         th_pertmin, epsilon, use_direction, nbin, bin_option)
+    #         th_pertmin, epsilon, th_residual, nbin, bin_option)
     #     results.append(result)
 
     # Apply NMF to unmix each group of input traces corresponding to each neuron.
     p = mp.Pool(mp.cpu_count())
     results = p.starmap(nmfunmix1, [(i, traces_clip[:, list_neighbors[i]], outtrace_clip[:,i], list_alpha, 
-        th_pertmin, epsilon, use_direction, nbin, bin_option, flexible_alpha) for i in range(n)], chunksize=1)
+        th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha) for i in range(n)], chunksize=1)
     p.close()
 
     # See the explanation of "nmfunmix1" for detailed explanation of these output quantities

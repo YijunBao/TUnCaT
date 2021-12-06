@@ -39,7 +39,7 @@
 <h1 id="tuncat">TUnCaT</h1>
 <p>Temporal Unmixing of Calcium Traces (TUnCaT) is an automatic algorithm to decontaminate false transients from temporal traces generated from fluorescent calcium imaging videos. TUnCaT removed false transients caused by large-scale background fluctuation using background subtraction; TUnCaT removed false transients caused by neighboring neurons, axons, and dendrites using nonnegative matrix factorization (NMF).</p>
 <p>Copyright (C) 2021 Duke University NeuroToolbox</p>
-<p>This repo is an archived version of TUnCaT (v0.1). It also contains the results for our paper and the code to generate those results. This repo will not be updated. Please visit the <a href="https://github.com/YijunBao/TUnCaT">newer version</a> if you are not interested in reproducing our paper results.</p>
+<p>This repo contains the code of TUnCaT. If you want to reproduce the results in our paper, please visit the <a href="https://github.com/YijunBao/TUnCaT_paper_reproduction">paper reproduction repo</a> to find the data, results, and code to analyze the results.</p>
 <ul>
 <li><a href="#tuncat">TUnCaT</a></li>
 <li><a href="#installation-on-windows-or-linux">Installation on Windows or Linux</a>
@@ -59,7 +59,11 @@
 <ul>
 <li><a href="#use-your-own-videos">Use your own videos</a></li>
 <li><a href="#use-your-own-neuron-masks">Use your own neuron masks</a></li>
-<li><a href="#set-the-unmixing-parameters">Set the unmixing parameters</a></li>
+<li><a href="#set-the-unmixing-parameters">Set the unmixing parameters</a>
+<ul>
+<li><a href="#set-alpha-as-a-user-defined-value-or-using-cross-validation">Set alpha as a user-defined value or using cross-validation</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#citation">Citation</a></li>
@@ -146,8 +150,11 @@ python demo_TUnCaT.py
 <li><code>nbin</code> is the temporal downsampling ratio;</li>
 <li><code>bin_option</code> determines the temporal downsampling option. It can be 'downsample', 'sum', or 'mean'. It is not used when nbin == 1;</li>
 <li><code>flexible_alpha</code> determines whether a flexible alpha strategy is used when the smallest alpha in &quot;list_alpha&quot; already caused over-regularization.</li>
-<li>Among these parameters, we think most parameters do not need to be changed, but an optimized <code>list_alpha</code> can improve the unmixing accuracy. In our paper, we optimized the alpha using cross-validation, but it requires manual labeling of many traces, which is very time consuming. Instead, you can start with <code>list_alpha = [1]</code>, because most of our optimized alpha are close to 1.</li>
 </ul>
+<h3 id="set-alpha-as-a-user-defined-value-or-using-cross-validation">Set alpha as a user-defined value or using cross-validation</h3>
+<p>Among the above parameters, we think most parameters do not need to be changed, but an optimized <code>list_alpha</code> can improve the unmixing accuracy. In our paper, we optimized the alpha using cross-validation, but it requires manual labeling of many traces, which is time consuming. Users can start with <code>list_alpha = [1]</code>, because we showed that most of our optimized alpha are close to 1, and using a user-defined initial alpha=1 can give nearly the same accuracy for most videos without extreme conditions.</p>
+<p>However, if the experimental conditions are very different from our test datasets, using cross-validation to optimize alpha will potentially be more reliable. Because cross-validation requires multiple videos, we don't provide demo for cross-validation, but users can run through our paper reproduction code in the <a href="https://github.com/YijunBao/TUnCaT_paper_reproduction">paper reproduction repo</a> to see how cross-validation can be done. Here, we will briefly introduce how to perform cross-validation, and use our ABO dataset as an example. The following folders will refer to the folder in the paper reproduction repo.</p>
+<p>(1) Find a dataset containing multiple videos with similar experimental conditions. The three major datasets in our paper, ABO, NAOMi, 1p, are all qualified. (2) Manually label ground truth transients using the MATLAB GUI in the folder <code>TemporalLabelingGUI</code> (We already provided the ground truth transients for the paper reproduction datasets). (3) Run TUnCaT with multiple alpha in <code>list_alpha</code> using <code>TUnCaT_multi_ABO.py</code>. For a new dataset, you can also start with <code>demo_TUnCaT.py</code>, and set <code>list_alpha</code> to [0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10]. Make sure <code>multi_alpha = True</code>. (4) Calculate the F1 scores of all videos with different alpha using <code>evaluation/eval_ABO_ours.m</code>. (5) Find the optimal alpha for each cross-validation round using <code>evaluation/cross_validation.m</code>. You can load the file storing the calculated F1 scores, or run <code>cross_validation.m</code> immediately after <code>eval_ABO_ours.m</code> to avoid reloading the F1 scores.</p>
 <h1 id="citation">Citation</h1>
 <p>If you use any part of this software in your work, please cite Bao et al. 2021.</p>
 <h1 id="licensing-and-copyright">Licensing and Copyright</h1>
