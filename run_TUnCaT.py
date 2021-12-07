@@ -12,7 +12,7 @@ if (sys.version_info.major+sys.version_info.minor/10)>=3.8:
 else:
     from traces_from_masks_mp_mmap_fn_neighbors import traces_bgtraces_from_masks_mmap_neighbors
 from traces_from_masks_numba_neighbors import traces_bgtraces_from_masks_numba_neighbors
-from use_nmfunmix_mp_diag_v1_shm_MSE_novideo import use_nmfunmix
+from use_nmfunmix_mp_MSE_novideo import use_nmfunmix
 
 
 def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0], Qclip=0, \

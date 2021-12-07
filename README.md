@@ -70,8 +70,8 @@ You can also run the demo `demo_TUnCaT.ipynb` interactively using Jupyter Notebo
 By default, all the input, output, and intermediate files are saved under the `TUnCaT` folder. 
 
 ## Input files
-* A .h5 file `{name}.h5` contains the input video. This is a 3D dataset with shape = (T, Lx, Ly), where T is the number of frames, and (Lx, Ly) is the lateral dimension of each frame. The demo videos have (T, Lx, Ly) = (6000, 50, 50). 
-* A .mat file `FinalMasks_{name}.mat` contains the nueron masks of the video. This is a 3D array with shape = (Ly, Lx, n) in MATLAB, where Ly and Lx should match the lateral dimensions of the video, and n is the number of neurons. The demo masks have (Ly, Lx, n) = (50, 50, 45). 
+* A .h5 file `{name}.h5` contains the input video. This is a 3D dataset with shape = (T, Lx, Ly), where T is the number of frames, and (Lx, Ly) is the lateral dimension of each frame. The demo video has (T, Lx, Ly) = (6000, 50, 50). 
+* A .mat file `FinalMasks_{name}.mat` contains the nueron masks of the video. This is a 3D array with shape = (Ly, Lx, n) in MATLAB, where Ly and Lx should match the lateral dimensions of the video, and n is the number of neurons. The demo mask has (Ly, Lx, n) = (50, 50, 45). 
 * Important notice: The default dimension order for multi-dimensional array is reversed in MATLAB and python. When you save a dataset with shape = (L1, L2, L3) in MATLAB to an .h5 file or a .mat file with version 7.3 or newer (requiring h5py.File to load in python workspace), and then load it in python, the shape will become (L3, L2, L1). However, if you save the dataset as a .mat file with version 7 or earlier (requiring scipy.loadmat to load in python workspace), the dimensions will preserve and still be (L1, L2, L3). In this document, we will use the python default order to describe the datasets in python workspace or saved in .h5, and use the MATLAB default order to describe the datasets saved in .mat. Sometimes you need to transpose the dimensions to make them consistent. In python, you can transpose the dimensions using `Masks = Masks.transpose((2,1,0))`. In MATLAB, you can transpose the dimensions using `Masks = permute(Masks,[3,2,1])`.
 
 ## Intermediate and Output files
@@ -99,10 +99,10 @@ Of course, you can modify the demo scripts to process other videos. You need to 
 * The folder of the output traces (e.g., `dir_traces='./data/unmixed_traces'`);
 * `list_alpha` is the list of tested alpha;
 * `multi_alpha` determines the option to deal with multiple elements in `list_alpha`. False means the largest element providing non-trivial output traces will be used, which can be differnt for different neurons. True means each element will be tested and saved independently. These options are equivalent when there is only one element in `list_alpha`;
-* `use_direction` indicates whether a direction requirement is applied to the output traces;
 * `Qclip` is clipping quantile. Traces lower than this quantile are clipped to this quantile value;
 * `th_pertmin` is maximum pertentage of unmixed traces equaling to the trace minimum;
 * `epsilon` is the minimum value of the input traces after scaling and shifting;
+* `th_residual` is the maximum factorization residual if this value is not zero;
 * `nbin` is the temporal downsampling ratio;
 * `bin_option` determines the temporal downsampling option. It can be 'downsample', 'sum', or 'mean'. It is not used when nbin == 1;
 * `flexible_alpha` determines whether a flexible alpha strategy is used when the smallest alpha in "list_alpha" already caused over-regularization.
@@ -112,11 +112,12 @@ Among the above parameters, we think most parameters do not need to be changed, 
 
 However, if the experimental conditions are very different from our test datasets, using cross-validation to optimize alpha will potentially be more reliable. Because cross-validation requires multiple videos, we don't provide demo for cross-validation, but users can run through our paper reproduction code in the [paper reproduction repo](https://github.com/YijunBao/TUnCaT_paper_reproduction) to see how cross-validation can be done. Here, we will briefly introduce how to perform cross-validation, and use our ABO dataset as an example. The following folders will refer to the folder in the paper reproduction repo. 
 
-(1) Find a dataset containing multiple videos with similar experimental conditions. The three major datasets in our paper, ABO, NAOMi, 1p, are all qualified. (2) Manually label ground truth transients using the MATLAB GUI in the folder `TemporalLabelingGUI` (We already provided the ground truth transients for the paper reproduction datasets). (3) Run TUnCaT with multiple alpha in `list_alpha` using `TUnCaT_multi_ABO.py`. For a new dataset, you can also start with `demo_TUnCaT.py`, and set `list_alpha` to [0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10]. Make sure `multi_alpha = True`. (4) Calculate the F1 scores of all videos with different alpha using `evaluation/eval_ABO_ours.m`. (5) Find the optimal alpha for each cross-validation round using `evaluation/cross_validation.m`. You can load the file storing the calculated F1 scores, or run `cross_validation.m` immediately after `eval_ABO_ours.m` to avoid reloading the F1 scores.
+(1) Find a dataset containing multiple videos with similar experimental conditions. The three major datasets in our paper, ABO, NAOMi, 1p, are all qualified. (2) Manually label ground truth transients using the MATLAB GUI in the folder `TemporalLabelingGUI` (We already provided the ground truth transients for the paper reproduction datasets). (3) Run TUnCaT with multiple alpha in `list_alpha` using `TUnCaT_multi_ABO.py`. For a new dataset, you can also start with `demo_TUnCaT.py`, and set `list_alpha = [0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10]`. Make sure `multi_alpha = True`. (4) Calculate the F1 scores of all videos with different alpha using `evaluation/eval_ABO_ours.m`. (5) Find the optimal alpha for each cross-validation round using `evaluation/cross_validation.m`. You can load the file storing the calculated F1 scores, or run `cross_validation.m` immediately after `eval_ABO_ours.m` to avoid reloading the F1 scores.
 
 
 # Citation 
-If you use any part of this software in your work, please cite Bao et al. 2021.
+If you use any part of this software in your work, please cite our paper:
+Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)).
 
 
 # Licensing and Copyright
