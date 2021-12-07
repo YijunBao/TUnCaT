@@ -1,5 +1,7 @@
 ![NeuroToolbox logo](readme/neurotoolbox-logo.svg)
 
+[![DOI](https://zenodo.org/badge/397026426.svg)](https://zenodo.org/badge/latestdoi/397026426)
+
 # TUnCaT
 Temporal Unmixing of Calcium Traces (TUnCaT) is an automatic algorithm to decontaminate false transients from temporal traces generated from fluorescent calcium imaging videos. TUnCaT removed false transients caused by large-scale background fluctuation using background subtraction; TUnCaT removed false transients caused by neighboring neurons, axons, and dendrites using nonnegative matrix factorization (NMF).
 
