@@ -5,7 +5,7 @@ Temporal Unmixing of Calcium Traces (TUnCaT) is an automatic algorithm to decont
 
 Copyright (C) 2021 Duke University NeuroToolbox
 
-This repo contains the code of TUnCaT. If you want to reproduce the results in our paper, please visit the [paper reproduction repo](https://github.com/YijunBao/TUnCaT_paper_reproduction) to find the data, results, and code to analyze the results. 
+This repo contains the code of TUnCaT. If you want to reproduce the results in our paper, please visit the [paper reproduction repo](https://github.com/YijunBao/TUnCaT_paper_reproduction) or [FigShare](https://figshare.com/articles/dataset/TUnCaT_paper_reproduction/17132069) to find the data, results, and code to analyze the results. 
 
 - [TUnCaT](#tuncat)
 - [Installation on Windows or Linux](#installation-on-windows-or-linux)
