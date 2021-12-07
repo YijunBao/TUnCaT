@@ -119,7 +119,7 @@ However, if the experimental conditions are very different from our test dataset
 
 # Citation 
 If you use any part of this software in your work, please cite our paper:
-Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)).
+Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)). doi: 10.3389/fnins.2021.797421.
 
 
 # Licensing and Copyright
