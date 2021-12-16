@@ -43,12 +43,7 @@
 <p>This repo contains the code of TUnCaT. If you want to reproduce the results in our paper, please visit the <a href="https://github.com/YijunBao/TUnCaT_paper_reproduction">paper reproduction repo</a> or <a href="https://figshare.com/articles/dataset/TUnCaT_paper_reproduction/17132069">figshare</a> to find the data, results, and code to analyze the results.</p>
 <ul>
 <li><a href="#tuncat">TUnCaT</a></li>
-<li><a href="#installation-on-windows-or-linux">Installation on Windows or Linux</a>
-<ul>
-<li><a href="#from-official-python-website">From official Python website</a></li>
-<li><a href="#from-anaconda">From Anaconda</a></li>
-</ul>
-</li>
+<li><a href="#installation-on-windows-or-linux">Installation on Windows or Linux</a></li>
 <li><a href="#demo">Demo</a></li>
 <li><a href="#input-output-and-intermediate-files">Input, Output, and Intermediate Files</a>
 <ul>
@@ -72,38 +67,17 @@
 <li><a href="#sponsors">Sponsors</a></li>
 </ul>
 <h1 id="installation-on-windows-or-linux">Installation on Windows or Linux</h1>
-<h2 id="from-official-python-website">From official Python website</h2>
 <ul>
-<li>In Windows, install Python from the <a href="https://www.python.org/downloads/">official website</a>.</li>
-<li>In Linux, Python is often already installed. You can also install the lastest version by typing the following commands</li>
+<li>First, install Python from the <a href="https://www.python.org/downloads/">official website</a> or any other distribution like <a href="https://www.anaconda.com/">Anaconda</a>.</li>
+<li>Launch Windows/Linux terminal or Anaconda prompt, and install TUnCaT using pip:</li>
 </ul>
-<pre><code class="language-sh"><div>sudo apt-get install python3
-sudo <span class="hljs-built_in">alias</span> python = python3
-</div></code></pre>
-<ul>
-<li>Launch Windows or Linux terminal, and install the required packages: numpy, scipy, h5py, scikit-learn, numba by typing the following commands.Because numpy and scipy are dependencies of scikit-learn, only the remaining three packages needs manual installation.</li>
-</ul>
-<pre><code class="language-bat"><div>python -m pip install h5py
-python -m pip install scikit-learn
-python -m pip install numba
-</div></code></pre>
-<p>To run the optional figure plotting section in the demo, matplotlib should be installed</p>
-<pre><code class="language-bat"><div>python -m pip install matplotlib
-</div></code></pre>
-<h2 id="from-anaconda">From Anaconda</h2>
-<ul>
-<li>Install Python <a href="https://www.anaconda.com/">Anaconda</a></li>
-<li>Launch Anaconda prompt, and install the required packages: numpy, scipy, h5py, scikit-learn, numba. Because numpy and scipy are preinstalled in Anaconda, only the remaining three packages needs manual installation.</li>
-</ul>
-<pre><code class="language-bat"><div>conda install h5py
-conda install scikit-learn
-conda install numba
+<pre><code class="language-bat"><div>python -m pip install tuncat
 </div></code></pre>
 <ul>
 <li>Please be aware that the speed of TUnCaT in the Anaconda installation may be significantly slower than the speed in the offical python installation in Windows.</li>
 </ul>
 <h1 id="demo">Demo</h1>
-<p>We provided a demo for all users to get familiar with TUnCaT. We provided a one-photon imaging video <code>c28_163_244.h5</code> as well as its manually labeled neurons <code>FinalMasks_c28_163_244.mat</code>. The demo will calculate the raw traces and background traces of all neurons, calculate the unmixed traces using TUnCaT, and export them to the folder <code>unmixed_traces</code>. The input, output, and intermediate files will be explained in <a href="#input-output-and-intermediate-files">Input, Output, and Intermediate Files</a>.</p>
+<p>We provided a demo for all users to get familiar with TUnCaT. To run the demo, please download the code from our GitHub repository. We provided a one-photon imaging video <code>c28_163_244.h5</code> as well as its manually labeled neurons <code>FinalMasks_c28_163_244.mat</code>. The demo will calculate the raw traces and background traces of all neurons, calculate the unmixed traces using TUnCaT, and export them to the folder <code>unmixed_traces</code>. The input, output, and intermediate files will be explained in <a href="#input-output-and-intermediate-files">Input, Output, and Intermediate Files</a>.</p>
 <p>To run the demo python script, launch system terminal or Anaconda prompt, and type the following script</p>
 <pre><code class="language-bat"><div><span class="hljs-built_in">cd</span> {TUnCaT_root_path}
 python demo_TUnCaT.py
@@ -158,7 +132,7 @@ python demo_TUnCaT.py
 <p>(1) Find a dataset containing multiple videos with similar experimental conditions. The three major datasets in our paper, ABO, NAOMi, 1p, are all qualified. (2) Manually label ground truth transients using the MATLAB GUI in the folder <code>TemporalLabelingGUI</code> (We already provided the ground truth transients for the paper reproduction datasets). (3) Run TUnCaT with multiple alpha in <code>list_alpha</code> using <code>TUnCaT_multi_ABO.py</code>. For a new dataset, you can also start with <code>demo_TUnCaT.py</code>, and set <code>list_alpha = [0.1, 0.2, 0.3, 0.5, 1, 2, 3, 5, 10]</code>. Make sure <code>multi_alpha = True</code>. (4) Calculate the F1 scores of all videos with different alpha using <code>evaluation/eval_ABO_ours.m</code>. (5) Find the optimal alpha for each cross-validation round using <code>evaluation/cross_validation.m</code>. You can load the file storing the calculated F1 scores, or run <code>cross_validation.m</code> immediately after <code>eval_ABO_ours.m</code> to avoid reloading the F1 scores.</p>
 <h1 id="citation">Citation</h1>
 <p>If you use any part of this software in your work, please cite our paper:
-Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)). doi: 10.3389/fnins.2021.797421.</p>
+Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)). doi: <a href="https://www.frontiersin.org/articles/10.3389/fnins.2021.797421/abstract">10.3389/fnins.2021.797421</a>.</p>
 <h1 id="licensing-and-copyright">Licensing and Copyright</h1>
 <p>TUnCaT is released under <a href="LICENSE">the GNU License, Version 2.0</a>.</p>
 <h1 id="sponsors">Sponsors</h1>

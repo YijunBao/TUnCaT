@@ -4,15 +4,15 @@ import time
 import numpy as np
 from scipy.io import savemat, loadmat
 import h5py
-from utils import find_dataset
+from tuncat.utils import find_dataset
 
 if (sys.version_info.major+sys.version_info.minor/10)>=3.8:
     from multiprocessing.shared_memory import SharedMemory
-    from traces_from_masks_mp_shm_neighbors import traces_bgtraces_from_masks_shm_neighbors
+    from tuncat.traces_from_masks_mp_shm_neighbors import traces_bgtraces_from_masks_shm_neighbors
 else:
-    from traces_from_masks_mp_mmap_fn_neighbors import traces_bgtraces_from_masks_mmap_neighbors
-from traces_from_masks_numba_neighbors import traces_bgtraces_from_masks_numba_neighbors
-from use_nmfunmix_mp_MSE_novideo import use_nmfunmix
+    from tuncat.traces_from_masks_mp_mmap_fn_neighbors import traces_bgtraces_from_masks_mmap_neighbors
+from tuncat.traces_from_masks_numba_neighbors import traces_bgtraces_from_masks_numba_neighbors
+from tuncat.use_nmfunmix_mp_MSE_novideo import use_nmfunmix
 
 
 def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0], Qclip=0, \

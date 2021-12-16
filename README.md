@@ -11,8 +11,6 @@ This repo contains the code of TUnCaT. If you want to reproduce the results in o
 
 - [TUnCaT](#tuncat)
 - [Installation on Windows or Linux](#installation-on-windows-or-linux)
-  - [From official Python website](#from-official-python-website)
-  - [From Anaconda](#from-anaconda)
 - [Demo](#demo)
 - [Input, Output, and Intermediate Files](#input-output-and-intermediate-files)
   - [Input files](#input-files)
@@ -28,37 +26,16 @@ This repo contains the code of TUnCaT. If you want to reproduce the results in o
 
 
 # Installation on Windows or Linux 
-## From official Python website
-* In Windows, install Python from the [official website](https://www.python.org/downloads/). 
-* In Linux, Python is often already installed. You can also install the lastest version by typing the following commands
-```sh
-sudo apt-get install python3
-sudo alias python = python3
-```
-* Launch Windows or Linux terminal, and install the required packages: numpy, scipy, h5py, scikit-learn, numba by typing the following commands.Because numpy and scipy are dependencies of scikit-learn, only the remaining three packages needs manual installation.
+* First, install Python from the [official website](https://www.python.org/downloads/) or any other distribution like [Anaconda](https://www.anaconda.com/). 
+* Launch Windows/Linux terminal or Anaconda prompt, and install TUnCaT using pip:
 ```bat
-python -m pip install h5py
-python -m pip install scikit-learn
-python -m pip install numba
-```
-To run the optional figure plotting section in the demo, matplotlib should be installed
-```bat
-python -m pip install matplotlib
-```
-
-## From Anaconda
-* Install Python [Anaconda](https://www.anaconda.com/)
-* Launch Anaconda prompt, and install the required packages: numpy, scipy, h5py, scikit-learn, numba. Because numpy and scipy are preinstalled in Anaconda, only the remaining three packages needs manual installation.
-```bat
-conda install h5py
-conda install scikit-learn
-conda install numba
+python -m pip install tuncat
 ```
 * Please be aware that the speed of TUnCaT in the Anaconda installation may be significantly slower than the speed in the offical python installation in Windows.
 
 
 # Demo
-We provided a demo for all users to get familiar with TUnCaT. We provided a one-photon imaging video `c28_163_244.h5` as well as its manually labeled neurons `FinalMasks_c28_163_244.mat`. The demo will calculate the raw traces and background traces of all neurons, calculate the unmixed traces using TUnCaT, and export them to the folder `unmixed_traces`. The input, output, and intermediate files will be explained in [Input, Output, and Intermediate Files](#input-output-and-intermediate-files). 
+We provided a demo for all users to get familiar with TUnCaT. To run the demo, please download the code from our GitHub repository. We provided a one-photon imaging video `c28_163_244.h5` as well as its manually labeled neurons `FinalMasks_c28_163_244.mat`. The demo will calculate the raw traces and background traces of all neurons, calculate the unmixed traces using TUnCaT, and export them to the folder `unmixed_traces`. The input, output, and intermediate files will be explained in [Input, Output, and Intermediate Files](#input-output-and-intermediate-files). 
 
 To run the demo python script, launch system terminal or Anaconda prompt, and type the following script 
 ```bat
@@ -119,7 +96,7 @@ However, if the experimental conditions are very different from our test dataset
 
 # Citation 
 If you use any part of this software in your work, please cite our paper:
-Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)). doi: 10.3389/fnins.2021.797421.
+Bao, Y., E. Redington, A. Agarwal, and Y. Gong, Decontaminate traces from fluorescence calcium imaging videos using targeted nonnegative matrix factorization. Frontiers in Neuroscience (2021 (in press)). doi: [10.3389/fnins.2021.797421](https://www.frontiersin.org/articles/10.3389/fnins.2021.797421/abstract).
 
 
 # Licensing and Copyright

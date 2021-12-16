@@ -7,7 +7,7 @@ warnings.simplefilter('ignore', ConvergenceWarning)
 np.seterr(divide='ignore',invalid='ignore')
 from sklearn.metrics import mean_squared_error
 
-from bin_trace_video import bin_trace
+from tuncat.bin_trace_video import bin_trace
 
 
 def nmfunmix(Ftmix, nbin=1, tol=1e-4, max_iter=20000, alpha=1, l1_ratio=0.5, epsilon=0, bin_option='downsample'):

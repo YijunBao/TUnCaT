@@ -1,7 +1,7 @@
 import numpy as np
 import multiprocessing as mp
 from scipy.io import savemat
-from nmfunmix1_pertmin_res_MSE_novideo import nmfunmix1
+from tuncat.nmfunmix1_pertmin_res_MSE_novideo import nmfunmix1
 
 
 def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qclip=0, \

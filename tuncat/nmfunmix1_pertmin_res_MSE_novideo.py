@@ -1,5 +1,5 @@
 import numpy as np
-from nmfunmix_MSE import nmfunmix
+from tuncat.nmfunmix_MSE import nmfunmix
 
 
 def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \

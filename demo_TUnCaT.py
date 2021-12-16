@@ -1,7 +1,7 @@
 import os
 import numpy as np
 
-from run_TUnCaT import run_TUnCaT
+from tuncat.run_TUnCaT import run_TUnCaT
 
 
 if __name__ == '__main__':
