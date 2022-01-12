@@ -23,10 +23,10 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         The output traces will be stored in "dir_traces".
     Inputs: 
         Exp_ID (str): The name of the video.
-        filename_video (str): The file path (including file name) of the video.
-            The video file must be a ".h5" file. 
-        filename_masks (str): The file path (including file name) of the neuron masks.
-            The file must be a ".mat" file, and the masks are saved as variable "FinalMasks". 
+        filename_video (numpy.ndarray or str): The video or the file path (including file name) of the video.
+            If representing the path, the video file must be a ".h5" file. 
+        filename_masks (numpy.ndarray or str): The neuron masks or the file path (including file name) of the neuron masks.
+            If representing the path, the file must be a ".mat" file, and the masks are saved as variable "FinalMasks". 
         dir_traces (str): The folder to save the unmixed traces.
         list_alpha (list of float, default to [0]): A list of alpha to be tested.
             The elements should be sorted in ascending order.
@@ -58,6 +58,10 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
             Each column is the unmixed trace of a neuron.
         list_mixout (list of numpy.ndarray of float, shape = (n1,n1)): 
             Each element is the row-normalized mixing matrix for the NMF of each neuron.
+        traces (numpy.ndarray of float, shape = (T,n)): The raw traces before unmixing. 
+            Each column is the raw trace of a neuron.
+        bgtraces (numpy.ndarray of float, shape = (T,n)): The background traces. 
+            Each column is the background trace of a neuron.
 
     In addition to the returned variables, more outputs are stored under the folder "dir_traces".
         There are two sub-folders under this folder.
@@ -78,19 +82,28 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
 
     start = time.time()
     # Get information about the video
-    file_video = h5py.File(filename_video, 'r')
-    varname = find_dataset(file_video)
-    (T, Lx, Ly) = video_shape = file_video[varname].shape
-    video_dtype = file_video[varname].dtype
+    if isinstance(filename_video, str):
+        file_video = h5py.File(filename_video, 'r')
+        varname = find_dataset(file_video)
+        (T, Lx, Ly) = video_shape = file_video[varname].shape
+        video_dtype = file_video[varname].dtype
+    else:
+        filename_video = np.array(filename_video)
+        (T, Lx, Ly) = video_shape = filename_video.shape
+        video_dtype = filename_video.dtype  
 
     # Load neuron masks
-    try:
-        file_masks = loadmat(filename_masks)
-        Masks = file_masks['FinalMasks'].transpose([2,1,0]).astype('bool')
-    except:
-        file_masks = h5py.File(filename_masks, 'r')
-        Masks = np.array(file_masks['FinalMasks']).astype('bool')
-        file_masks.close()
+    if isinstance(filename_masks, str):
+        try:
+            file_masks = loadmat(filename_masks)
+            Masks = file_masks['FinalMasks'].transpose([2,1,0]).astype('bool')
+        except:
+            file_masks = h5py.File(filename_masks, 'r')
+            Masks = np.array(file_masks['FinalMasks']).astype('bool')
+            file_masks.close()
+    else:
+        filename_masks = np.array(filename_masks)
+        Masks = filename_masks
     (_, Lxm, Lym) = Masks.shape
     # If the shape of the masks is different from the shapes of the video,
     # zero-pad or crop the masks to fit the video shape 
@@ -107,19 +120,29 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
     # Determine the method to calculate traces: shared memory, memory mapping, or numpy
     if Masks.sum()*T < 7e7:
         trace_method = 'numba' # Using numba is faster for small videos
+        print('Using numba for trace calculation.')
     else:
         if (sys.version_info.major+sys.version_info.minor/10)>=3.8:
             trace_method = 'shm' # "shared_memory" module is only available on python versions >= 3.8
+            print('Using shared_memory for trace calculation.')
         else:
             trace_method = 'memmap' # memory mapping is available on older python versions
+            print('Using memory mapping for trace calculation.')
         
     if trace_method == 'shm':
         # Create the shared memory object for the video
-        nbytes_video = int(video_dtype.itemsize * file_video[varname].size)
-        shm_video = SharedMemory(create=True, size=nbytes_video)
-        video = np.frombuffer(shm_video.buf, dtype = file_video[varname].dtype)
-        video[:] = file_video[varname][()].ravel()
-        video = video.reshape(file_video[varname].shape)
+        if isinstance(filename_video, str):
+            nbytes_video = int(video_dtype.itemsize * file_video[varname].size)
+            shm_video = SharedMemory(create=True, size=nbytes_video)
+            video = np.frombuffer(shm_video.buf, dtype = video_dtype)
+            video[:] = file_video[varname][()].ravel()
+            video = video.reshape(file_video[varname].shape)
+        else:
+            nbytes_video = int(video_dtype.itemsize * filename_video.size)
+            shm_video = SharedMemory(create=True, size=nbytes_video)
+            video = np.frombuffer(shm_video.buf, dtype = video_dtype)
+            video[:] = filename_video[()].ravel()
+            video = video.reshape(filename_video.shape)
 
         # Create the shared memory object for the masks
         shm_masks = SharedMemory(create=True, size=Masks.nbytes)
@@ -133,8 +156,12 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         # Create the memory mapping file for the video
         fn_video = name_mmap + 'video.dat'
         fp_video = np.memmap(fn_video, dtype=video_dtype, mode='w+', shape=(T,Lx*Ly))
-        for tt in range(T):
-            fp_video[tt] = file_video[varname][tt].ravel()
+        if isinstance(filename_video, str):
+            for tt in range(T):
+                fp_video[tt] = file_video[varname][tt].ravel()
+        else:
+            for tt in range(T):
+                fp_video[tt] = filename_video[tt].ravel()
 
         # Create the memory mapping file for the masks
         fn_masks = name_mmap + 'masks.dat'
@@ -143,10 +170,14 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         del Masks
 
     elif trace_method == 'numba':
-        video = np.array(file_video[varname])
+        if isinstance(filename_video, str):
+            video = np.array(file_video[varname])
+        else:
+            video = filename_video
 
         
-    file_video.close()
+    if isinstance(filename_video, str):
+        file_video.close()
     finish = time.time()
     print('Data loading time: {} s'.format(finish - start))
 
@@ -227,5 +258,5 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         del fp_video
         os.remove(fn_video)
 
-    return traces_nmfdemix, list_mixout
+    return traces_nmfdemix, list_mixout, traces, bgtraces
 
