@@ -258,5 +258,9 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         del fp_video
         os.remove(fn_video)
 
+    if len(list_alpha) == 0:
+        traces_nmfdemix = 0
+        list_mixout = 0
+
     return traces_nmfdemix, list_mixout, traces, bgtraces
 
