@@ -134,21 +134,27 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         if isinstance(filename_video, str):
             nbytes_video = int(video_dtype.itemsize * file_video[varname].size)
             shm_video = SharedMemory(create=True, size=nbytes_video)
-            video = np.frombuffer(shm_video.buf, dtype = video_dtype)
-            video[:] = file_video[varname][()].ravel()
-            video = video.reshape(file_video[varname].shape)
+            video = np.ndarray(video_shape, dtype = video_dtype, buffer=shm_video.buf)
+            video[:] = file_video[varname][:]
+            # video = np.frombuffer(shm_video.buf, dtype = video_dtype)
+            # video[:] = file_video[varname][()].ravel()
+            # video = video.reshape(file_video[varname].shape)
         else:
             nbytes_video = int(video_dtype.itemsize * filename_video.size)
             shm_video = SharedMemory(create=True, size=nbytes_video)
-            video = np.frombuffer(shm_video.buf, dtype = video_dtype)
-            video[:] = filename_video[()].ravel()
-            video = video.reshape(filename_video.shape)
+            video = np.ndarray(video_shape, dtype = video_dtype, buffer=shm_video.buf)
+            video[:] = filename_video[:]
+            # video = np.frombuffer(shm_video.buf, dtype = video_dtype)
+            # video[:] = filename_video[()].ravel()
+            # video = video.reshape(filename_video.shape)
 
         # Create the shared memory object for the masks
         shm_masks = SharedMemory(create=True, size=Masks.nbytes)
-        FinalMasks = np.frombuffer(shm_masks.buf, dtype = 'bool')
-        FinalMasks[:] = Masks.ravel()
-        FinalMasks = FinalMasks.reshape(Masks.shape)
+        FinalMasks = np.ndarray(masks_shape, dtype = 'bool', buffer=shm_masks.buf)
+        FinalMasks[:] = Masks[:]
+        # FinalMasks = np.frombuffer(shm_masks.buf, dtype = 'bool')
+        # FinalMasks[:] = Masks.ravel()
+        # FinalMasks = FinalMasks.reshape(Masks.shape)
         del Masks
 
     elif trace_method == 'memmap':
@@ -245,8 +251,10 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
 
     if trace_method == 'shm':
         # Unlink shared memory objects
+        del video
         shm_video.close()
         shm_video.unlink()
+        del FinalMasks
         shm_masks.close()
         shm_masks.unlink()
     elif trace_method == 'memmap':

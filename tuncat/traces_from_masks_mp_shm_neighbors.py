@@ -88,12 +88,16 @@ def traces_bgtraces_from_masks_shm_neighbors(shm_video, video_dtype, video_shape
     [xx, yy] = np.meshgrid(np.arange(Ly), np.arange(Lx))
     xx = xx.astype('uint16')
     shm_xx = SharedMemory(create=True, size=xx.nbytes)
-    xx_temp = np.frombuffer(shm_xx.buf, dtype='uint16')
-    xx_temp[:] = xx.ravel()
+    xx_temp = np.ndarray(xx.shape, dtype='uint16', buffer=shm_xx.buf)
+    xx_temp[:] = xx[:]
+    # xx_temp = np.frombuffer(shm_xx.buf, dtype='uint16')
+    # xx_temp[:] = xx.ravel()
     yy = yy.astype('uint16')
     shm_yy = SharedMemory(create=True, size=yy.nbytes)
-    yy_temp = np.frombuffer(shm_yy.buf, dtype='uint16')
-    yy_temp[:] = yy.ravel()
+    yy_temp = np.ndarray(yy.shape, dtype='uint16', buffer=shm_yy.buf)
+    yy_temp[:] = yy[:]
+    # yy_temp = np.frombuffer(shm_yy.buf, dtype='uint16')
+    # yy_temp[:] = yy.ravel()
     
     # results = []
     # for nn in range(ncells):
@@ -111,8 +115,10 @@ def traces_bgtraces_from_masks_shm_neighbors(shm_video, video_dtype, video_shape
     outtraces = np.array([x[2] for x in results]).T
 
     # Unlink shared memory objects
+    del xx_temp
     shm_xx.close()
     shm_xx.unlink()
+    del yy_temp
     shm_yy.close()
     shm_yy.unlink()
 
