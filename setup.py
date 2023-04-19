@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='tuncat',
-    version='1.0.3',
+    version='1.0.4',
     description=(
         'Temporal Unmixing of Calcium Traces (TUnCaT) is an automatic algorithm to decontaminate false transients from temporal traces generated from fluorescent calcium imaging videos. '
     ),
@@ -36,7 +36,7 @@ setup(
     install_requires=[
         'numpy',
         'scipy',
-        'scikit-learn',
+        'scikit-learn <1.2',
         'numba',
         'h5py',
         'matplotlib'
