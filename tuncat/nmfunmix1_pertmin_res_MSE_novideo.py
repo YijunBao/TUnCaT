@@ -2,8 +2,8 @@ import numpy as np
 from tuncat.nmfunmix_MSE import nmfunmix
 
 
-def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
-        th_residual=0, nbin=1, bin_option='downsample', flexible_alpha=True):
+def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, th_residual=0, \
+        nbin=1, bin_option='downsample', flexible_alpha=True, tol=1e-4, max_iter=20000):
     ''' Unmix the input traces in "trace" and "outtrace" using NMF, and obtain the unmixed traces and the mixing matrix. 
     Inputs: 
         i (int): The index of the neuron of interest.
@@ -32,6 +32,8 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
             when the smallest alpha in "list_alpha" already caused over-regularization.
             False means the final alpha is the smallest element in "list_alpha".
             True means trying to recursively divide the smallest alpha by 2 until no over-regularization exists.
+        tol (float, default to 1e-4): Tolerance of the stopping condition in NMF.
+        max_iter (int, default to 20000): Maximum number of iterations before timing out in NMF.
 
     Outputs:
         traceout (numpy.ndarray of float, shape = (T,n)): The resulting unmixed traces. 
@@ -69,8 +71,8 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
     # Gradually increase alpha until the output mixout is singular,
     # then choose the maximum alpha that provides nonsingular mixout
     for j in range(len(list_alpha)):
-        (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, \
-            nbin=nbin, alpha=list_alpha[j], epsilon=epsilon, bin_option=bin_option) 
+        (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, nbin=nbin, \
+            tol=tol, max_iter=max_iter, alpha=list_alpha[j], epsilon=epsilon, bin_option=bin_option) 
         alpha_final = list_alpha[j]
         question_flag = over_regularization(traceout, eps, subtraces, th_pertmin, th_residual, MSE, noise)
         
@@ -80,8 +82,8 @@ def nmfunmix1(i, trace, outtrace, list_alpha=[0], th_pertmin=1, epsilon=0, \
             if jj > 0: # If the alpha is too large only at some late alpha, then return to the privous alpha
                 while jj > 0 and question_flag:
                     jj = jj-1
-                    (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, \
-                        nbin=nbin, alpha=list_alpha[jj], epsilon=epsilon, bin_option=bin_option) 
+                    (traceout, mixout, tempmixIDs, subtraces, MSE, n_iter) = nmfunmix(tracein, nbin=nbin, \
+                        tol=tol, max_iter=max_iter, alpha=list_alpha[jj], epsilon=epsilon, bin_option=bin_option) 
                     alpha_final = list_alpha[jj]
                     question_flag = over_regularization(traceout, eps, subtraces, th_pertmin, th_residual, MSE, noise) 
             if jj == 0 and flexible_alpha:  

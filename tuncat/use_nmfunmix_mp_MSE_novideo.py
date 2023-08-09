@@ -5,7 +5,8 @@ from tuncat.nmfunmix1_pertmin_res_MSE_novideo import nmfunmix1
 
 
 def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qclip=0, \
-        th_pertmin=1, epsilon=0, th_residual=0, nbin=1, bin_option='downsample', flexible_alpha=True):
+        th_pertmin=1, epsilon=0, th_residual=0, nbin=1, bin_option='downsample', \
+        flexible_alpha=True, tol=1e-4, max_iter=20000):
     ''' Unmix the traces of all neurons using NMF, and obtain the unmixed traces and the mixing matrix. 
     Inputs: 
         traces (numpy.ndarray of float, shape = (T,n)): The raw traces of all neurons.
@@ -35,6 +36,8 @@ def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qc
             when the smallest alpha in "list_alpha" already caused over-regularization.
             False means the final alpha is the smallest element in "list_alpha".
             True means trying to recursively divide the smallest alpha by 2 until no over-regularization exists.
+        tol (float, default to 1e-4): Tolerance of the stopping condition in NMF.
+        max_iter (int, default to 20000): Maximum number of iterations before timing out in NMF.
 
     Outputs:
         demix (numpy.ndarray of float, shape = (T,n)): The resulting unmixed traces. 
@@ -61,13 +64,13 @@ def use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha=[0], Qc
     # results = []
     # for i in range(n):
     #     result = nmfunmix1(i, traces_clip[:, list_neighbors[i]], bgtraces[:,i], list_alpha, \
-    #         th_pertmin, epsilon, th_residual, nbin, bin_option)
+    #         th_pertmin, epsilon, th_residual, nbin, bin_option, tol, max_iter)
     #     results.append(result)
 
     # Apply NMF to unmix each group of input traces corresponding to each neuron.
     p = mp.Pool(mp.cpu_count())
     results = p.starmap(nmfunmix1, [(i, traces_clip[:, list_neighbors[i]], outtrace_clip[:,i], list_alpha, 
-        th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha) for i in range(n)], chunksize=1)
+        th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha, tol, max_iter) for i in range(n)], chunksize=1)
     p.close()
 
     # See the explanation of "nmfunmix1" for detailed explanation of these output quantities

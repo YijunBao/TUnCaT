@@ -16,8 +16,8 @@ from tuncat.use_nmfunmix_mp_MSE_novideo import use_nmfunmix
 
 
 def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0], Qclip=0, \
-        th_pertmin=1, epsilon=0, th_residual=False, nbin=1, \
-        bin_option='downsample', multi_alpha=True, flexible_alpha=True):
+        th_pertmin=1, epsilon=0, th_residual=False, nbin=1, bin_option='downsample', \
+        multi_alpha=True, flexible_alpha=True, tol=1e-4, max_iter=20000):
     ''' Unmix the traces of all neurons in a video, and obtain the unmixed traces and the mixing matrix. 
         The video is stored in "filename_video", and the neuron masks are stored in "filename_masks".
         The output traces will be stored in "dir_traces".
@@ -52,6 +52,8 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
             when the smallest alpha in "list_alpha" already caused over-regularization.
             False means the final alpha is the smallest element in "list_alpha".
             True means trying to recursively divide the smallest alpha by 2 until no over-regularization exists.
+        tol (float, default to 1e-4): Tolerance of the stopping condition in NMF.
+        max_iter (int, default to 20000): Maximum number of iterations before timing out in NMF.
 
     Outputs:
         traces_nmfdemix (numpy.ndarray of float, shape = (T,n)): The resulting unmixed traces. 
@@ -217,8 +219,9 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
             # Apply NMF to unmix the background-subtracted traces
             start = time.time()
             traces_nmfdemix, list_mixout, list_MSE, list_final_alpha, list_n_iter = \
-                use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, [alpha], Qclip, \
-                th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha)
+                use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, [alpha], Qclip=Qclip, \
+                    th_pertmin=th_pertmin, epsilon=epsilon, th_residual=th_residual, nbin=nbin, \
+                    bin_option=bin_option, flexible_alpha=flexible_alpha, tol=tol, max_iter=max_iter)
             finish = time.time()
             print('NMF unmixing time: {} s'.format(finish - start))
 
@@ -233,8 +236,9 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         # Apply NMF to unmix the background-subtracted traces
         start = time.time()
         traces_nmfdemix, list_mixout, list_MSE, list_final_alpha, list_n_iter = \
-            use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha, Qclip, \
-            th_pertmin, epsilon, th_residual, nbin, bin_option, flexible_alpha)
+            use_nmfunmix(traces, bgtraces, outtraces, list_neighbors, list_alpha, Qclip=Qclip, \
+                th_pertmin=th_pertmin, epsilon=epsilon, th_residual=th_residual, nbin=nbin, \
+                bin_option=bin_option, flexible_alpha=flexible_alpha, tol=tol, max_iter=max_iter)
         finish = time.time()
         print('Unmixing time: {} s'.format(finish - start))
 

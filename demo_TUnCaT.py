@@ -41,6 +41,10 @@ if __name__ == '__main__':
     # Whether a flexible alpha strategy is used 
     # when the smallest alpha in "list_alpha" already caused over-regularization.
     flexible_alpha = True
+    tol = 1e-4 
+    # Tolerance of the stopping condition in NMF.
+    max_iter = 20000
+    # Maximum number of iterations before timing out in NMF.
 
     # %% Run TUnCaT on the demo video
     for Exp_ID in list_Exp_ID:
@@ -51,8 +55,9 @@ if __name__ == '__main__':
         filename_masks = os.path.join(dir_masks, 'FinalMasks_' + Exp_ID + '.mat')
         
         # run TUnCaT to calculate the unmixed traces of the marked neurons in the video
-        run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha, Qclip, \
-            th_pertmin, epsilon, th_residual, nbin, bin_option, multi_alpha, flexible_alpha)
+        run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha, Qclip=Qclip, \
+            th_pertmin=th_pertmin, epsilon=epsilon, th_residual=th_residual, nbin=nbin, bin_option=bin_option, \
+            multi_alpha=multi_alpha, flexible_alpha=flexible_alpha, tol=tol, max_iter=max_iter)
 
 
     # %% Load the output data (Optional).
