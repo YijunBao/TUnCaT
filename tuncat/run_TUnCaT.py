@@ -64,6 +64,7 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
             Each column is the raw trace of a neuron.
         bgtraces (numpy.ndarray of float, shape = (T,n)): The background traces. 
             Each column is the background trace of a neuron.
+        time_TUnCaT (float): The processing time of TUnCaT (excluding data loading and writing times).
 
     In addition to the returned variables, more outputs are stored under the folder "dir_traces".
         There are two sub-folders under this folder.
@@ -204,7 +205,8 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
     # Save the raw traces into a ".mat" file under folder "dir_trace_raw".
     dir_trace_raw = os.path.join(dir_traces, "raw")
     finish = time.time()
-    print('Trace calculation time: {} s'.format(finish - start))
+    time_trace = finish - start
+    print('Trace calculation time: {} s'.format(time_trace))
     if not os.path.exists(dir_trace_raw):
         os.makedirs(dir_trace_raw)        
     savemat(os.path.join(dir_trace_raw, Exp_ID+".mat"), {"traces": traces, "bgtraces": bgtraces})
@@ -223,7 +225,8 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
                     th_pertmin=th_pertmin, epsilon=epsilon, th_residual=th_residual, nbin=nbin, \
                     bin_option=bin_option, flexible_alpha=flexible_alpha, tol=tol, max_iter=max_iter)
             finish = time.time()
-            print('NMF unmixing time: {} s'.format(finish - start))
+            time_nmf = finish - start
+            print('NMF unmixing time: {} s'.format(time_nmf))
 
             # Save the unmixed traces into a ".mat" file under folder "dir_trace_unmix".
             dir_trace_unmix = os.path.join(dir_traces, "alpha={:6.3f}".format(alpha))
@@ -240,7 +243,8 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
                 th_pertmin=th_pertmin, epsilon=epsilon, th_residual=th_residual, nbin=nbin, \
                 bin_option=bin_option, flexible_alpha=flexible_alpha, tol=tol, max_iter=max_iter)
         finish = time.time()
-        print('Unmixing time: {} s'.format(finish - start))
+        time_nmf = finish - start
+        print('NMF unmixing time: {} s'.format(time_nmf))
 
         # Save the unmixed traces into a ".mat" file under folder "dir_trace_unmix".
         if len(list_alpha) > 1:
@@ -270,9 +274,10 @@ def run_TUnCaT(Exp_ID, filename_video, filename_masks, dir_traces, list_alpha=[0
         del fp_video
         os.remove(fn_video)
 
+    time_TUnCaT = time_trace + time_nmf
     if len(list_alpha) == 0:
         traces_nmfdemix = 0
         list_mixout = 0
 
-    return traces_nmfdemix, list_mixout, traces, bgtraces
+    return traces_nmfdemix, list_mixout, traces, bgtraces, time_TUnCaT
 

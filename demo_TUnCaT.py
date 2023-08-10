@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # Whether a flexible alpha strategy is used 
     # when the smallest alpha in "list_alpha" already caused over-regularization.
     flexible_alpha = True
-    tol = 1e-4 
+    tol = 1e-3 
     # Tolerance of the stopping condition in NMF.
     max_iter = 20000
     # Maximum number of iterations before timing out in NMF.
